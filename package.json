@@ -1,0 +1,16 @@
+{
+  "name": "image-gallery-generator",
+  "version": "1.0.0",
+  "description": "このプロジェクトは、指定されたディレクトリ内の画像ファイルからHTMLギャラリーを動的に生成するNode.jsアプリケーションです。ローカルネットワーク内でアクセス可能なウェブサーバーとして機能し、画像のサムネイルを生成し、lightboxビューアーを使用して画像を表示します。",
+  "main": "gallery-api-server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2",
+    "sharp": "^0.33.4"
+  }
+}
