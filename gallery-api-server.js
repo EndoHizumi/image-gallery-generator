@@ -105,7 +105,17 @@ app.get("/gallery", async (req, res) => {
   }
 });
 
-app.use("/images", express.static(config.defaultImagePath));
+app.use("/images/:directoryHash", (req, res, next) => {
+  const directoryHash = req.params.directoryHash;
+  const imagePath = Object.entries(config).find(
+    ([key, value]) => hashDirectory(value) === directoryHash
+  )?.[1];
+  if (imagePath) {
+    express.static(imagePath)(req, res, next);
+  } else {
+    res.status(404).send("Directory not found");
+  }
+});
 app.use(
   "/thumbnails",
   express.static(path.join(config.defaultImagePath, "thumbnails"))

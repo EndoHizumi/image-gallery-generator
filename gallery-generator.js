@@ -1,6 +1,11 @@
 const fs = require("fs").promises;
 const path = require("path");
 const sharp = require("sharp");
+const crypto = require("crypto");
+
+function hashDirectory(directoryPath) {
+  return crypto.createHash("md5").update(directoryPath).digest("hex");
+}
 
 async function generateThumbnail(imagePath, thumbnailPath, size = 200) {
   try {
@@ -107,7 +112,9 @@ async function generateGalleryHTML(directoryPath, progressCallback) {
     <div class="gallery">
 `;
 
-  const thumbnailDir = path.join(directoryPath, "thumbnails");
+  const thumbnailBaseDir = path.join(__dirname, "thumbnails");
+  const directoryHash = hashDirectory(directoryPath);
+  const thumbnailDir = path.join(thumbnailBaseDir, directoryHash);
   await fs.mkdir(thumbnailDir, { recursive: true });
 
   let completedCount = 0;
@@ -126,8 +133,12 @@ async function generateGalleryHTML(directoryPath, progressCallback) {
       }
 
       return `
-      <a href="images/${file}" class="lightbox">
-        <img src="thumbnails/thumb_${file}" alt="${file}">
+      <a href="images/${encodeURIComponent(directoryHash)}/${encodeURIComponent(
+        file
+      )}" class="lightbox">
+        <img src="thumbnails/${encodeURIComponent(
+          directoryHash
+        )}/${encodeURIComponent(`thumb_${file}`)}" alt="${file}">
       </a>
     `;
     } catch (error) {
@@ -170,4 +181,4 @@ async function generateGalleryHTML(directoryPath, progressCallback) {
   return html;
 }
 
-module.exports = { generateGalleryHTML };
+module.exports = { generateGalleryHTML, hashDirectory };
