@@ -2,7 +2,7 @@ const express = require("express");
 const path = require("path");
 const os = require("os");
 const fs = require("fs");
-const { generateGalleryHTML } = require("./gallery-generator");
+const { generateGalleryHTML, hashDirectory } = require("./gallery-generator");
 
 const app = express();
 const port = 3000;
@@ -116,10 +116,7 @@ app.use("/images/:directoryHash", (req, res, next) => {
     res.status(404).send("Directory not found");
   }
 });
-app.use(
-  "/thumbnails",
-  express.static(path.join(config.defaultImagePath, "thumbnails"))
-);
+app.use("/thumbnails", express.static("thumbnails"));
 
 const localIpAddress = getLocalIpAddress();
 
