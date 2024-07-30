@@ -5,7 +5,7 @@
   "main": "gallery-api-server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node gallery-api-server.js",
+    "start": "node gallery-api-server.js"
   },
   "keywords": [],
   "author": "",
