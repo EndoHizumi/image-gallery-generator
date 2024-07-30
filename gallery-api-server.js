@@ -1,45 +1,47 @@
-const express = require('express');
-const path = require('path');
-const os = require('os');
-const fs = require('fs');
-const { generateGalleryHTML } = require('./gallery-generator');
+const express = require("express");
+const path = require("path");
+const os = require("os");
+const fs = require("fs");
+const { generateGalleryHTML } = require("./gallery-generator");
 
 const app = express();
 const port = 3000;
 
 let config;
 try {
-  const configFile = fs.readFileSync('config.json', 'utf8');
+  const configFile = fs.readFileSync("config.json", "utf8");
   config = JSON.parse(configFile);
 } catch (error) {
-  console.error('設定ファイルの読み込みに失敗しました:', error);
-  config = { defaultImagePath: '' };
+  console.error("設定ファイルの読み込みに失敗しました:", error);
+  config = { defaultImagePath: "" };
 }
 
 function getLocalIpAddress() {
+  // ローカルIPアドレスを取得する
   const interfaces = os.networkInterfaces();
-  for (const devName in interfaces) {
-    const iface = interfaces[devName];
-    for (let i = 0; i < iface.length; i++) {
-      const alias = iface[i];
-      if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal) {
-        return alias.address;
-      }
-    }
+  for (let dev in interfaces) {
+    const iface = interfaces[dev].find(
+      (details) => details.family === "IPv4" && !details.internal
+    );
+    if (iface) return iface.address;
   }
-  return '0.0.0.0';
+  return "0.0.0.0";
 }
 
-app.get('/gallery', async (req, res) => {
+app.get("/gallery", async (req, res) => {
   let directoryPath = req.query.path || config.defaultImagePath;
-  
+
   if (!directoryPath) {
-    return res.status(400).send('パスが指定されていません。クエリパラメータ"path"を使用するか、config.jsonでデフォルトパスを設定してください。');
+    return res
+      .status(400)
+      .send(
+        'パスが指定されていません。クエリパラメータ"path"を使用するか、config.jsonでデフォルトパスを設定してください。'
+      );
   }
 
   res.writeHead(200, {
-    'Content-Type': 'text/html; charset=utf-8',
-    'Transfer-Encoding': 'chunked'
+    "Content-Type": "text/html; charset=utf-8",
+    "Transfer-Encoding": "chunked",
   });
 
   res.write(`
@@ -87,27 +89,35 @@ app.get('/gallery', async (req, res) => {
   `);
 
   try {
-    const html = await generateGalleryHTML(directoryPath, (completed, total) => {
-      res.write(`<script>updateProgress(${completed}, ${total});</script>`);
-    });
+    const html = await generateGalleryHTML(
+      directoryPath,
+      (completed, total) => {
+        res.write(`<script>updateProgress(${completed}, ${total});</script>`);
+      }
+    );
     res.write('<script>document.body.innerHTML = "";</script>');
     res.write(html);
     res.end();
   } catch (error) {
-    console.error('エラーが発生しました:', error);
-    res.write('<h2>エラーが発生しました</h2>');
+    console.error("エラーが発生しました:", error);
+    res.write("<h2>エラーが発生しました</h2>");
     res.end();
   }
 });
 
-app.use('/images', express.static(config.defaultImagePath));
-app.use('/thumbnails', express.static(path.join(config.defaultImagePath, 'thumbnails')));
+app.use("/images", express.static(config.defaultImagePath));
+app.use(
+  "/thumbnails",
+  express.static(path.join(config.defaultImagePath, "thumbnails"))
+);
 
 const localIpAddress = getLocalIpAddress();
 
-app.listen(port, '0.0.0.0', () => {
+app.listen(port, "0.0.0.0", () => {
   console.log(`Gallery API サーバーが起動しました`);
-  console.log(`ローカルアクセス: http://localhost:${port}`);
-  console.log(`LAN内アクセス: http://${localIpAddress}:${port}`);
-  console.log(`デフォルト画像パス: ${config.defaultImagePath || '設定されていません'}`);
+  console.log(`ローカルアクセス: http://localhost:${port}/gallery`);
+  console.log(`LAN内アクセス: http://${localIpAddress}:${port}/gallery`);
+  console.log(
+    `デフォルト画像パス: ${config.defaultImagePath || "設定されていません"}`
+  );
 });

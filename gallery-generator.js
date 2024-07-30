@@ -1,6 +1,6 @@
-const fs = require('fs').promises;
-const path = require('path');
-const sharp = require('sharp');
+const fs = require("fs").promises;
+const path = require("path");
+const sharp = require("sharp");
 
 async function generateThumbnail(imagePath, thumbnailPath, size = 200) {
   try {
@@ -11,14 +11,14 @@ async function generateThumbnail(imagePath, thumbnailPath, size = 200) {
   }
 
   await sharp(imagePath, { failOnError: false })
-    .resize(size, size, { fit: 'inside' })
+    .resize(size, size, { fit: "inside" })
     .toFile(thumbnailPath);
 }
 
 async function generateGalleryHTML(directoryPath, progressCallback) {
   const files = await fs.readdir(directoryPath);
-  const imageFiles = files.filter(file => 
-    ['.jpg', '.jpeg', '.png', '.gif'].includes(path.extname(file).toLowerCase())
+  const imageFiles = files.filter((file) =>
+    [".jpg", ".jpeg", ".png", ".gif"].includes(path.extname(file).toLowerCase())
   );
 
   let html = `
@@ -33,17 +33,21 @@ async function generateGalleryHTML(directoryPath, progressCallback) {
     body, html {
       margin: 0;
       padding: 0;
-      min-height: 100vh;
       font-family: Arial, sans-serif;
+      height: 100%;
     }
     .gallery-container {
-      padding: 10px;
+      padding-left: 20px;
+      padding-right: 20px;
+      padding-top: 40px;
+      width: 100%;
     }
     .gallery {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
       justify-content: center;
+      width: 100%;
     }
     .gallery a {
       display: block;
@@ -76,8 +80,18 @@ async function generateGalleryHTML(directoryPath, progressCallback) {
     h1 {
       text-align: center;
       color: #333;
+      margin-bottom: 20px;
     }
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
+      .gallery {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+      .gallery-container {
+        padding: 10px;
+      }
+    }
+    @media (max-width: 480px) {
       .gallery {
         grid-template-columns: repeat(2, 1fr);
       }
@@ -89,11 +103,11 @@ async function generateGalleryHTML(directoryPath, progressCallback) {
 </head>
 <body>
   <div class="gallery-container">
-    <h1>画像ギャラリー</h1>
+    <h1>${directoryPath}</h1>
     <div class="gallery">
 `;
 
-  const thumbnailDir = path.join(directoryPath, 'thumbnails');
+  const thumbnailDir = path.join(directoryPath, "thumbnails");
   await fs.mkdir(thumbnailDir, { recursive: true });
 
   let completedCount = 0;
@@ -102,7 +116,7 @@ async function generateGalleryHTML(directoryPath, progressCallback) {
   const thumbnailPromises = imageFiles.map(async (file, index) => {
     const imagePath = path.join(directoryPath, file);
     const thumbnailPath = path.join(thumbnailDir, `thumb_${file}`);
-    
+
     try {
       await generateThumbnail(imagePath, thumbnailPath);
 
@@ -131,7 +145,7 @@ async function generateGalleryHTML(directoryPath, progressCallback) {
   });
 
   const thumbnailResults = await Promise.all(thumbnailPromises);
-  html += thumbnailResults.join('');
+  html += thumbnailResults.join("");
 
   html += `
     </div>
